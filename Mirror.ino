@@ -1,16 +1,16 @@
-//gesture sensor
+//gesture sensor library file
 #include "Adafruit_APDS9960.h"
 Adafruit_APDS9960 apds;
 
-//LED
+//LED library file and LED set up
 #include <FastLED.h>
 #define LED_PIN     7
 #define NUM_LEDS    120
 CRGB leds[NUM_LEDS];
 
-//#define BRIGHTNESS  20
 
-//distance sensor
+
+//distance sensor set up
 // defines pins numbers
 const int trigPin = 3;
 const int echoPin = 2;
@@ -20,10 +20,11 @@ int distance;
 int brightness = 0; // 0 <= brightness <= 255
 
 void setup() {
-  // put your setup code here, to run once:
+  // set up LED lights and show it in monitor window
    FastLED.addLeds<WS2812, LED_PIN, GRB>(leds, NUM_LEDS);
    Serial.begin(115200);
 
+  // set up gesture sensor and show it in monitor window
   if(!apds.begin()){
     Serial.println("failed to initialize device! Please check your wiring.");
   }
@@ -32,10 +33,11 @@ void setup() {
     apds.enableProximity(true);
     apds.enableGesture(true);
 
-
+  // set up distance sensor
     pinMode(trigPin, OUTPUT); 
     pinMode(echoPin, INPUT); 
 
+  //start the LEDs
    for(int i = 0; i<NUM_LEDS; i++){
        leds[i] = CRGB(60,60,60);   
        FastLED.show();
@@ -43,7 +45,6 @@ void setup() {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
 
    // Clears the trigPin
   digitalWrite(trigPin, LOW);
@@ -56,12 +57,12 @@ void loop() {
   duration = pulseIn(echoPin, HIGH);
 // Calculating the distance
   distance= duration*0.034/2;
-// Prints the distance on the Serial Monitor
+// Prints the distance on the Serial Monitor 
   Serial.print("Distance: ");
   if(distance < 2000) Serial.println(distance);
   else Serial.println("Invalid");
 
-// //Disco
+// //Disco ---- other versions of the lighting
 //  int k = 0;
 //  while(true){
 //    int i = k % NUM_LEDS;
@@ -73,7 +74,7 @@ void loop() {
 //    k++;
 //  }
 
-  //Color temperature
+  //Color temperature ---- other versions of the lighting
 //  int m = 0;
 //  while(distance<10){
 //    digitalWrite(trigPin, LOW);
@@ -97,7 +98,7 @@ void loop() {
 //    m++;
 //  }
 
-
+// when user approaching the mirror, LEDs light up
   if(distance >= 50 && distance <= 180 && brightness < 5){
     for(int i=0;i<=150;i++){
       brightness++;
@@ -107,7 +108,7 @@ void loop() {
       if(brightness == 150) break;
     }
   }
-
+// when user leaving the mirror, LED light down and turn off
   if(distance > 180 && distance < 2000 && brightness > 5){
     for(int i=0;i<=256;i++){
       brightness--;
@@ -118,13 +119,14 @@ void loop() {
     }
   }
   
+  // show the gesture sensor signals in monitor window
     uint8_t gesture = apds.readGesture();
     if(gesture == APDS9960_DOWN) Serial.println("v");
     if(gesture == APDS9960_UP) Serial.println("^");
     if(gesture == APDS9960_LEFT) Serial.println("<");
     if(gesture == APDS9960_RIGHT) Serial.println(">");
 
-
+  // connect gesture with the brightness of LEDs, when move between left and right, brightness goes down, when move up and down, brightness goes up
     if(gesture == APDS9960_DOWN) {
       if(brightness > 235) brightness = 255;
       else brightness += 20;
@@ -148,17 +150,6 @@ void loop() {
     FastLED.setBrightness(brightness);
     FastLED.show();
 
-    
-//
-
-
-//
-//   for(int j = 20; j < 300; j++){
-//      FastLED.setBrightness(j);
-//      FastLED.show();
-//      FastLED.delay(100);
-//      //Serial.println(j);
-//    }
 
 
 }
